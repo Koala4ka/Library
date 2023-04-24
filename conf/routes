@@ -1,0 +1,99 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~
+
+# An example controller showing a sample home page
+GET     /                           controllers.HomeController.index()
+
+
+GET    /hello/:name controllers.HomeController.hello(name: String)
+
+
+########################################################################################################################
+##################################################### B O O K ##########################################################
+########################################################################################################################
+
+###
+#tags:
+#- Book
+#summary: Get all books with pagination (books/1/6)
+#operationId: get all Books
+#produces:
+#- application/json
+#responses:
+#  '200':
+#    description: success
+#  '500':
+#    description: Internal server error
+###
+GET /books/:page/:limit     controllers.BookController.getAll(page: Int, limit: Int)
+###
+#tags:
+#- Book
+#summary: Get book by id
+#operationId: GetBookById
+#produces:
+#- application/json
+#responses:
+#  '200':
+#    description: success
+#  '404':
+#    description: Not found
+#  '500':
+#    description: Internal server error
+###
+GET     /books/:id          controllers.BookController.getById(id: String)
+
+###
+#tags:
+#- Book
+#summary: Create book
+#operationId: CreateBook
+#consumes: application/json
+#produces:
+#- text/plain
+#responses:
+#  '200':
+#    description: success
+#  '500':
+#    description: Internal server error
+###
+POST    /books                       controllers.BookController.create
+
+###
+#tags:
+#- Book
+#summary: Update book
+#operationId: UpdateBook
+#consumes: application/json
+#produces:
+#- text/plain
+#responses:
+#  '200':
+#    description: success
+#  '422':
+#    description: Wrong json
+#  '500':
+#    description: Internal server error
+###
+PUT     /books/:id            controllers.BookController.update(id: String)
+
+###
+#tags:
+#- Book
+#summary: Delete book
+#operationId: DeleteBook
+#consumes: application/json
+#produces:
+#- text/plain
+#responses:
+#  '200':
+#    description: success
+#  '404':
+#    description: Not found
+#  '500':
+#    description: Internal server error
+###
+DELETE    /books/:id                       controllers.BookController.delete(id: String)
+
