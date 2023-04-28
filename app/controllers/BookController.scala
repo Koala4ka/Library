@@ -2,10 +2,10 @@ package controllers
 
 import models.Book
 import monix.execution.Scheduler
-import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import reactivemongo.api.bson.BSONObjectID
+import reactivemongo.play.json.compat.bson2json.fromDocumentWriter
 import service.BookService
 
 import javax.inject._
@@ -15,9 +15,9 @@ import scala.util.{Failure, Success}
 
 @Singleton
 class BookController @Inject()(cc: ControllerComponents,
-                               bookService: BookService,
-                              )(implicit ex: ExecutionContext, sch: Scheduler)
+                               bookService: BookService)(implicit ex: ExecutionContext, sch: Scheduler)
   extends AbstractController(cc) {
+
 
   def getAll(): Action[AnyContent] = Action.async { request =>
     val page = request.getQueryString("page").map(_.toInt).getOrElse(1)
@@ -48,10 +48,9 @@ class BookController @Inject()(cc: ControllerComponents,
     val objectIdTryResult = BSONObjectID.parse(id)
     objectIdTryResult match {
       case Success(objectId) => bookService.getById(objectId).map {
-        case Some(book) => Ok(Json.toJson(book))
-        case None => NotFound("Book not found")
+        book => Ok(Json.toJson(book))
       }.runToFuture
-      case Failure(_) => Future.successful(BadRequest("Cannot parse the book id"))
+      case Failure(_) => Future.successful(BadRequest("Cannot parse the movie id"))
     }
   }
 
@@ -71,16 +70,18 @@ class BookController @Inject()(cc: ControllerComponents,
   }
   }
 
-  def delete(id: String): Action[AnyContent] = Action.async { implicit request =>
+  def delete(id: String): Action[AnyContent] = Action.async { implicit request => {
     val objectIdTryResult = BSONObjectID.parse(id)
     objectIdTryResult match {
       case Success(objectId) => bookService.delete(objectId).map {
-        case result if result.n == 0 => NotFound("Book not found")
-        case _ => NoContent
+        _ => NoContent
       }.runToFuture
       case Failure(_) => Future.successful(BadRequest("Cannot parse the book id"))
     }
   }
-
+  }
 }
+
+
+
 

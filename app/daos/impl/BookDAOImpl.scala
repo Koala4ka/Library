@@ -26,13 +26,13 @@ class BookDaoImpl @Inject()(
   import reactivemongo.play.json.compat
   import compat.json2bson._
 
-  override def getAll(page: Int, limit: Int): Task[Seq[Book]] = {
+  def getAll(page: Int, limit: Int): Task[Seq[BSONDocument]] = {
     val offset = (page - 1) * limit
     collection.flatMap {
       _.find(BSONDocument.empty)
         .skip(offset)
-        .cursor[Book]()
-        .collect[Seq](limit, Cursor.FailOnError[Seq[Book]]())
+        .cursor[BSONDocument]()
+        .collect[Seq](limit, Cursor.FailOnError[Seq[BSONDocument]]())
         .wrapEx
     }
   }
@@ -45,11 +45,12 @@ class BookDaoImpl @Inject()(
     }
   }
 
-  override def getById(id: BSONObjectID): Task[Option[Book]] = {
-    collection.flatMap(_.find(BSONDocument("_id" -> id), Option.empty[Book]).one[Book].wrapEx)
+  override def getById(id: BSONObjectID): Task[Option[BSONDocument]] = {
+    collection.flatMap(_.find(BSONDocument("_id" -> id), Option.empty[BSONDocument]).one[BSONDocument].wrapEx)
   }
 
-  override def update(id: BSONObjectID, book: Book): Task[Option[Book]] = {
+
+  override def update(id: BSONObjectID, book: Book): Task[Option[BSONDocument]] = {
     val selector = BSONDocument("_id" -> id)
     val update = BSONDocument("$set" -> book)
     for {
