@@ -66,8 +66,4 @@ class BookDaoImpl @Inject()(
       _.delete().one(BSONDocument("_id" -> id), Some(1)).wrapEx
     )
   }
-
-
 }
-
-

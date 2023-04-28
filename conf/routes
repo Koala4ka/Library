@@ -27,7 +27,8 @@ GET    /hello/:name controllers.HomeController.hello(name: String)
 #  '500':
 #    description: Internal server error
 ###
-GET /books/:page/:limit     controllers.BookController.getAll(page: Int, limit: Int)
+GET     /books                   controllers.BookController.getAll()
+
 ###
 #tags:
 #- Book
@@ -39,7 +40,7 @@ GET /books/:page/:limit     controllers.BookController.getAll(page: Int, limit: 
 #  '200':
 #    description: success
 #  '404':
-#    description: Not found
+#    description: Book is not found
 #  '500':
 #    description: Internal server error
 ###

@@ -2,6 +2,7 @@ package controllers
 
 import models.Book
 import monix.execution.Scheduler
+import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import reactivemongo.api.bson.BSONObjectID
@@ -14,13 +15,17 @@ import scala.util.{Failure, Success}
 
 @Singleton
 class BookController @Inject()(cc: ControllerComponents,
-                               bookService: BookService)(implicit ex: ExecutionContext, sch: Scheduler)
+                               bookService: BookService,
+                              )(implicit ex: ExecutionContext, sch: Scheduler)
   extends AbstractController(cc) {
 
-
-  def getAll(page: Int, limit: Int): Action[AnyContent] = Action.async { request =>
+  def getAll(): Action[AnyContent] = Action.async { request =>
+    val page = request.getQueryString("page").map(_.toInt).getOrElse(1)
+    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(5)
+    val maxLimit = 10
+    val clampedLimit = if (limit > maxLimit) maxLimit else limit
     val task = for {
-      books <- bookService.getAll(page, limit)
+      books <- bookService.getAll(page, clampedLimit)
     } yield Ok(Json.toJson(books))
     task.onErrorHandle {
       case e: Exception => InternalServerError(e.getMessage)
@@ -43,9 +48,10 @@ class BookController @Inject()(cc: ControllerComponents,
     val objectIdTryResult = BSONObjectID.parse(id)
     objectIdTryResult match {
       case Success(objectId) => bookService.getById(objectId).map {
-        book => Ok(Json.toJson(book))
+        case Some(book) => Ok(Json.toJson(book))
+        case None => NotFound("Book not found")
       }.runToFuture
-      case Failure(_) => Future.successful(BadRequest("Cannot parse the movie id"))
+      case Failure(_) => Future.successful(BadRequest("Cannot parse the book id"))
     }
   }
 
@@ -65,14 +71,16 @@ class BookController @Inject()(cc: ControllerComponents,
   }
   }
 
-  def delete(id: String): Action[AnyContent] = Action.async { implicit request => {
+  def delete(id: String): Action[AnyContent] = Action.async { implicit request =>
     val objectIdTryResult = BSONObjectID.parse(id)
     objectIdTryResult match {
       case Success(objectId) => bookService.delete(objectId).map {
-        _ => NoContent
+        case result if result.n == 0 => NotFound("Book not found")
+        case _ => NoContent
       }.runToFuture
       case Failure(_) => Future.successful(BadRequest("Cannot parse the book id"))
     }
   }
-  }
+
 }
+

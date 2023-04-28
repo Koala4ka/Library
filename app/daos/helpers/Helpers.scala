@@ -13,6 +13,5 @@ object Helpers {
       case DbResultException => throw DbResultException
       case ex => throw DbInternalException(ex)
     }
-
   }
 }
